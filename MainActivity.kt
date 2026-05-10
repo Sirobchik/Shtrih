@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity() {
     }
     //Запуск сканера
     private fun startScan() {
-        scaner.launch(ScanOptions())
+        scanLauncher.launch(ScanOptions())
 //        val integrator = IntentIntegrator(this)
 //        integrator.setDesiredBarcodeFormats(ScanOptions.CODE_128)
 //        integrator.setPrompt("Сканируйте штрих-код")
