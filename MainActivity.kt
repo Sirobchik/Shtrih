@@ -1,8 +1,9 @@
 package com.example.shtrih2
 
+//Импорт подключаемых библиотек
 //import android.R
 import android.content.Intent
-import android.net.Uri
+import android.net.Uri//Работа с файлами
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -16,29 +17,32 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import com.google.zxing.integration.android.IntentIntegrator
 import org.apache.poi.ss.usermodel.Workbook
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.apache.poi.xssf.usermodel.XSSFWorkbook//Чтение эксель файла
 import com.example.shtrih2.R
-import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanContract//Сканирование
 import com.journeyapps.barcodescanner.ScanOptions
 
+//Главный экран приложения
 class MainActivity : AppCompatActivity() {
     private val viewModel by viewModels<Swag>()
     private val database by lazy {viewModel.database}
-    private var tvResult: TextView? = null
+    private var tvResult: TextView? = null//Вывод результата
 
-    var filePicker: ActivityResultLauncher<String?>? = null
+    var filePicker: ActivityResultLauncher<String?>? = null//Запуск работы файла
+    //Запуск сканера
     private val scaner=registerForActivityResult(ScanContract()){
+        //Поиск штрих-кода в базе
         if (it.getContents() != null) {
             val code = it.getContents()
             val product = database.get(code)
 
-            tvResult!!.setText(code + " → " + product)
+            tvResult!!.setText(code + " → " + product)//Запись результата
 //            tvResult!!.setText("Excel загружен: " + database.size + " записей")
         } else {
             tvResult!!.setText("Сканирование отменено")
         }
     }
-
+    //Запуск и работа программы и кнопок
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -58,29 +62,29 @@ class MainActivity : AppCompatActivity() {
         )
 
         btnLoad.setOnClickListener(View.OnClickListener { v: View? ->
-            filePicker!!.launch("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            filePicker!!.launch("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")//Позволяет вручную выбрать файл
         })
 
-        btnScan.setOnClickListener(View.OnClickListener { v: View? -> startScan() })
+        btnScan.setOnClickListener(View.OnClickListener { v: View? -> startScan() })//Запуск сканера
     }
 
-    private fun loadExcel(uri: Uri) {
+    private fun loadExcel(uri: Uri) {//Загрузка эксель файла
         try {
-            val inputStream = getContentResolver().openInputStream(uri)
+            val inputStream = getContentResolver().openInputStream(uri)//Открытие файла
             val workbook: Workbook = XSSFWorkbook(inputStream)
-            val sheet = workbook.getSheetAt(0)
+            val sheet = workbook.getSheetAt(0)//Просмотр листа
 
             database.clear()
 
-            for (row in sheet) {
-                val barcodeCell = row.getCell(2)
-                val nameCell = row.getCell(0)
+            for (row in sheet) {//Цикл просмотра вхес столбцов и строк
+                val barcodeCell = row.getCell(2)//запись третьего столбца
+                val nameCell = row.getCell(0)//запись первого столбца
                 try {
                     if (barcodeCell != null && nameCell != null) {
                         val barcode = barcodeCell.stringCellValue.trim()
                         val name = nameCell.numericCellValue.toString()
                         Log.e("System.err","${barcode} ${name}")
-                        database.put(barcode, name)
+                        database.put(barcode, name)//Сохранение данных
                     }
 
                 }catch (e: Exception){}
@@ -92,13 +96,13 @@ class MainActivity : AppCompatActivity() {
                 }
 
 
-            tvResult!!.setText("Excel загружен: " + database.size + " записей")
+            tvResult!!.setText("Excel загружен: " + database.size + " записей")//Вывод результата
         } catch (e: Exception) {
             e.printStackTrace()
             tvResult!!.setText("Ошибка загрузки Excel")
         }
     }
-
+    //Запуск сканера
     private fun startScan() {
         scaner.launch(ScanOptions())
 //        val integrator = IntentIntegrator(this)
@@ -127,3 +131,4 @@ class MainActivity : AppCompatActivity() {
 }
 class Swag: ViewModel(){
     val database = HashMap<String?, String?>()
+}
